@@ -260,61 +260,6 @@
             }
         }
 
-        /* ====== MUSIC PLAYER ====== */
-        .music-player {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #d946a6 0%, #ec4899 100%);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(217, 70, 166, 0.3);
-            transition: all 0.3s ease;
-            z-index: 50;
-            opacity: 0.7;
-        }
-
-        .music-player:hover {
-            opacity: 1;
-            transform: scale(1.1);
-            box-shadow: 0 15px 40px rgba(217, 70, 166, 0.5);
-        }
-
-        .music-icon {
-            font-size: 30px;
-            color: white;
-        }
-
-        .visualizer {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 4px;
-        }
-
-        .bar {
-            width: 3px;
-            height: 15px;
-            background: white;
-            border-radius: 2px;
-            animation: visualize 0.6s ease-in-out infinite;
-        }
-
-        .bar:nth-child(2) { animation-delay: 0.1s; }
-        .bar:nth-child(3) { animation-delay: 0.2s; }
-
-        @keyframes visualize {
-            0%, 100% { height: 8px; }
-            50% { height: 20px; }
-        }
-
         /* ====== AUDIO ELEMENT ====== */
         audio {
             display: none;
@@ -351,17 +296,6 @@
             .letter-text {
                 font-size: 18px;
                 min-height: 200px;
-            }
-
-            .music-player {
-                width: 60px;
-                height: 60px;
-                bottom: 20px;
-                right: 20px;
-            }
-
-            .music-icon {
-                font-size: 24px;
             }
         }
 
@@ -413,7 +347,7 @@
     <!-- HOME SECTION -->
     <section id="home" class="section active">
         <div class="home-content">
-            <h1 class="main-title">Happy Mother's Day Inay!</h1>
+            <h1 class="main-title">Happy Mother's Day</h1>
             <p class="subtitle">To the most wonderful mom in the world</p>
             <button class="open-btn" onclick="showSection('letter')">💌 Open My Message</button>
         </div>
@@ -422,32 +356,23 @@
     <!-- LETTER SECTION -->
     <section id="letter" class="section">
         <div class="letter-card">
-            <h2 class="letter-title">Dear Inay ❤️</h2>
+            <h2 class="letter-title">Dear Mom ❤️</h2>
             <div class="letter-text" id="letterContent"></div>
         </div>
     </section>
 
-    <!-- Music Player -->
-    <div class="music-player" onclick="toggleMusic()">
-        <div class="visualizer">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-        </div>
-        <span class="music-icon" id="musicIcon">🎵</span>
-    </div>
-
-    <!-- Audio Element -->
-    <audio id="bgMusic" loop>
-        <source src="SB19 - MAPA (Lyrics) - (320 Kbps).mp3" type="audio/mpeg">
+    <!-- Audio Element - CHANGE "background-music.mp3" TO YOUR MUSIC FILE NAME -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="background-music.mp3" type="audio/mpeg">
     </audio>
 
     <script>
         // ====== LETTER TEXT WITH TYPEWRITER EFFECT ======
-        const letterText = ` Happy Mother's Day, Inay! Thank you sa walang sawang suporta mo sa akin at sa inyo ni tito, alam ko na kahit marami kayong financial problem hindi nyo ako pinapabayaan lalo na kapag may mga bayarin. Gusto ko lang malaman nyo na kahit nagiging pasaway ako, mahal na mahal ko kayo at gusto ko lang din malaman mo na sobrang swerte ko sayo at sobrang na-aappreciate kita inay! Salamat sa lahat at 'wag kayong mag-alala dahil pare parehas tayong aangat sa buhay kapag naging stable na ako at ako naman ang babawi sa mga ginawa nyong sakripisyo sa akin. I love you inay and Happy happy Mother's Day!💕`;
+        const letterText = `I want to thank you for everything you do. Your love, care, and support mean the world to me. You are my inspiration, my strength, and my guide. Thank you for being the most amazing mom ever. I love you so much! 💕`;
 
         let currentIndex = 0;
         let isTyping = false;
+        let musicStarted = false;
 
         // ====== FALLING HEARTS EFFECT ======
         function createFallingHeart() {
@@ -507,32 +432,40 @@
             }
         }
 
-        // ====== MUSIC PLAYER ======
-        let isPlaying = false;
-
-        function toggleMusic() {
+        // ====== ROBUST MUSIC AUTOPLAY ======
+        function playMusicSafely() {
+            if (musicStarted) return; // Prevent multiple plays
+            
             const audio = document.getElementById('bgMusic');
-            const musicIcon = document.getElementById('musicIcon');
-
-            if (isPlaying) {
-                audio.pause();
-                musicIcon.textContent = '🎵';
-                isPlaying = false;
-            } else {
-                audio.play();
-                musicIcon.textContent = '🔊';
-                isPlaying = true;
+            
+            // Reset audio to start from beginning
+            audio.currentTime = 0;
+            
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        musicStarted = true;
+                        console.log('Music started successfully');
+                    })
+                    .catch((error) => {
+                        console.log('Autoplay prevented:', error);
+                        // Retry on user interaction
+                        document.addEventListener('click', playMusicSafely, { once: true });
+                        document.addEventListener('touchstart', playMusicSafely, { once: true });
+                    });
             }
         }
 
-        // Auto-play music when page loads
+        // ====== START MUSIC ON PAGE LOAD ======
         window.addEventListener('load', function() {
-            setTimeout(() => {
-                document.getElementById('bgMusic').play();
-                document.getElementById('musicIcon').textContent = '🔊';
-                isPlaying = true;
-            }, 2500);
+            setTimeout(playMusicSafely, 500);
         });
+
+        // ====== START MUSIC ON FIRST USER INTERACTION ======
+        document.addEventListener('click', playMusicSafely, { once: true });
+        document.addEventListener('touchstart', playMusicSafely, { once: true });
 
         // ====== SMOOTH SCROLLING ======
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -544,9 +477,6 @@
                 }
             });
         });
-
-        // ====== INITIAL TYPEWRITER ON LETTER SECTION ======
-        // The typewriter will start when user clicks on Letter tab
     </script>
 </body>
 </html>
